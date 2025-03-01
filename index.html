@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Playground</title>
+    
+    <!-- Include CodeMirror for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        .main-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+        
+        .editor-container, .output-container, .packages-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .editor-header, .output-header, .packages-header {
+            background-color: #4a76a8;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .output-header {
+            background-color: #5a865a;
+        }
+        
+        .packages-header {
+            background-color: #a87a4a;
+            cursor: pointer;
+        }
+        
+        .editor-content {
+            height: 300px;
+            border: 1px solid #ddd;
+        }
+        
+        .CodeMirror {
+            height: 100%;
+            font-size: 16px;
+        }
+        
+        .output-content {
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f8f8f8;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .packages-content {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .packages-panel {
+            width: 300px;
+            transition: width 0.3s ease;
+        }
+        
+        .packages-panel.collapsed {
+            width: 40px;
+        }
+        
+        .packages-panel.collapsed .packages-content {
+            display: none;
+        }
+        
+        .packages-panel.collapsed .panel-title {
+            display: none;
+        }
+        
+        .collapse-icon {
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin: 10px 0;
+        }
+        
+        button {
+            background-color: #4a76a8;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #3a5d84;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #run-button {
+            background-color: #5a865a;
+        }
+        
+        #run-button:hover {
+            background-color: #4a6e4a;
+        }
+        
+        #run-button:disabled {
+            background-color: #c0c0c0;
+        }
+        
+        #stop-button {
+            background-color: #a85a5a;
+            display: none;
+        }
+        
+        #stop-button:hover {
+            background-color: #8a4a4a;
+        }
+        
+        #clear-button {
+            background-color: #a85a5a;
+        }
+        
+        #clear-button:hover {
+            background-color: #8a4a4a;
+        }
+        
+        #install-button {
+            background-color: #a87a4a;
+            width: 100%;
+        }
+        
+        #install-button:hover {
+            background-color: #8a6a3a;
+        }
+        
+        #packages-textarea {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+            font-family: monospace;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .examples-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .examples-container h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .example {
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: #4a76a8;
+        }
+        
+        .example:hover {
+            text-decoration: underline;
+        }
+        
+        .installed-packages {
+            font-size: 14px;
+            margin-top: 10px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        
+        .installed-packages-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 2s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+        }
+        
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .ai-response-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 40%;
+        }
+
+        .ai-response-header {
+            background-color: #8a4aa8;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ai-response-content {
+            min-height: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            white-space: pre-wrap;
+            font-family: sans-serif;
+            line-height: 1.5;
+        }
+        
+        .ai-response-content p {
+            margin: 3px;
+        }
+
+        #ask-ai-button {
+            background-color: #8a4aa8;
+        }
+
+        #ask-ai-button:hover {
+            background-color: #7a3a98;
+        }
+
+        #close-ai-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        .ai-settings {
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        #settings-toggle {
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+
+        #settings-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+
+        .settings-row {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-row label {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .settings-row input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #save-settings {
+            background-color: #4a76a8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #8a4aa8;
+            border-radius: 50%;
+            margin-right: 3px;
+            animation: typingAnimation 1s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+
+        code {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: monospace;
+            padding: 2px 4px;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-x: auto;
+        }        
+        
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background-color: #f8f8f8;
+        }
+        
+        #chat-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+            margin-right: 10px;
+        }
+        
+        #send-chat-button {
+            background-color: #8a4aa8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 15px;
+            cursor: pointer;
+            align-self: flex-end;
+            height: 40px;
+        }
+        
+        #send-chat-button:hover {
+            background-color: #7a3a98;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .message-user {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .message-ai {
+            /* No special styling needed for AI responses */
+        }        
+    </style>
+</head>
+<body>
+    <h1>Python Playground</h1>
+    <p>Write Python 3 code in the editor below and run it directly in your browser.</p>
+    
+    <div class="main-container">
+        <div class="container">
+            <div class="editor-container">
+                <div class="editor-header">
+                    <span>Editor</span>
+                    <div class="status">
+                        <span id="status-text">Loading Python environment...</span>
+                        <div id="loader" class="loader" style="display: block;"></div>
+                    </div>
+                </div>
+                <div class="editor-content">
+                    <textarea id="code-editor">
+# Write your Python code here
+print("Hello, Python World!")
+
+# Try some basic Python operations
+a = 5
+b = 10
+print(f"a + b = {a + b}")
+
+# Create and use a function
+def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("Learner"))
+</textarea>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button id="ask-ai-button">Ask AI for Help</button>
+                <button id="clear-button">Clear Output</button>
+                <button id="run-button" disabled>Run Code ▶</button>
+                <button id="stop-button">Stop Execution ■</button>
+            </div>
+                      
+            
+            
+            <div class="output-container">
+                <div class="output-header">
+                    <span>Output</span>
+                </div>
+                <div id="output" class="output-content">Initializing Python environment...</div>
+            </div>
+        </div>
+        
+        <div class="ai-response-container" style="display: none;">
+            <div class="ai-response-header">
+                <span>AI Assistant</span>
+                <button id="close-ai-button">×</button>
+            </div>
+            <div id="ai-response" class="ai-response-content"></div>
+            <div class="chat-input-area">
+                <textarea id="chat-input" placeholder="Ask a follow-up question..."></textarea>
+                <button id="send-chat-button">Send</button>
+            </div>   
+            <div class="ai-settings">
+                <button id="settings-toggle">Settings</button>
+                <div id="settings-panel" style="display: none;">
+                    <div class="settings-row">
+                        <label for="api-key">API Key:</label>
+                        <input type="password" id="api-key" placeholder="Your OpenAI-compatible API key">
+                    </div>
+                    <div class="settings-row">
+                        <label for="api-endpoint">API Endpoint:</label>
+                        <input type="text" id="api-endpoint" placeholder="https://api.openai.com/v1/chat/completions" value="https://api.openai.com/v1/chat/completions">
+                    </div>
+                    <div class="settings-row">
+                        <label for="model-name">Model:</label>
+                        <input type="text" id="model-name" placeholder="gpt-3.5-turbo" value="gpt-3.5-turbo">
+                    </div>
+                    <button id="save-settings">Save Settings</button>
+                </div>
+            </div>
+        </div>    
+     
+        
+        <div id="packages-panel" class="packages-panel">
+            <div class="packages-header" id="packages-header">
+                <span class="panel-title">Python Packages</span>
+                <span class="collapse-icon" id="collapse-icon">▶</span>
+            </div>
+            <div class="packages-content">
+                <div>
+                    <div>Enter one package per line:</div>
+                    <div class="help-text">Example: matplotlib, pandas, requests, etc.</div>
+                    <textarea id="packages-textarea" placeholder="numpy
+pandas
+matplotlib
+..."></textarea>
+                </div>
+                <button id="install-button">Install Packages</button>
+                <div id="installed-packages" class="installed-packages">
+                    <div class="installed-packages-title">Installed Packages:</div>
+                    <div id="installed-packages-list">None</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Main script
+        
+        // Create a Web Worker for running Python code
+        let pyodideWorker = null;
+        let installedPackages = new Set();
+        
+        // Initialize CodeMirror
+        const editor = CodeMirror.fromTextArea(document.getElementById("code-editor"), {
+            mode: "python",
+            lineNumbers: true,
+            indentUnit: 4,
+            matchBrackets: true,
+            autofocus: true,
+            theme: "default"
+        });
+        
+        // UI elements
+        const outputElement = document.getElementById("output");
+        const statusTextElement = document.getElementById("status-text");
+        const loaderElement = document.getElementById("loader");
+        const runButton = document.getElementById("run-button");
+        const stopButton = document.getElementById("stop-button");
+        const clearButton = document.getElementById("clear-button");
+        const packagesPanel = document.getElementById("packages-panel");
+        const packagesHeader = document.getElementById("packages-header");
+        const collapseIcon = document.getElementById("collapse-icon");
+        const installButton = document.getElementById("install-button");
+        const packagesTextarea = document.getElementById("packages-textarea");
+        const installedPackagesList = document.getElementById("installed-packages-list");
+        
+        // Define the Web Worker code as a Blob
+        const workerCode = `
+            // Web Worker for Pyodide
+            
+            // Load Pyodide and packages
+            importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js");
+            
+            // Flag to track if Pyodide is loaded
+            let pyodideReady = false;
+            let pyodide = null;
+            let installedPackages = new Set();
+            
+            // Initialize Pyodide
+            async function initializePyodide() {
+                self.postMessage({ type: "status", status: "loading" });
+                
+                try {
+                    pyodide = await loadPyodide();
+                    await pyodide.loadPackage('micropip');
+                    
+                    // Set up stdout/stderr redirection
+                    await pyodide.runPythonAsync(\`
+                        import sys
+                        from pyodide.ffi import create_proxy
+                        
+                        class PyodideOutput:
+                            def __init__(self):
+                                self.outputs = []
+                                
+                            def write(self, text):
+                                self.outputs.append(text)
+                                
+                            def flush(self):
+                                pass
+                                
+                            def get_output(self):
+                                return ''.join(self.outputs)
+                                
+                        sys.stdout = PyodideOutput()
+                        sys.stderr = PyodideOutput()
+                    \`);
+                    
+                    // Signal that Pyodide is ready
+                    pyodideReady = true;
+                    self.postMessage({ type: "status", status: "ready" });
+                } catch (error) {
+                    self.postMessage({ 
+                        type: "status", 
+                        status: "error", 
+                        error: "Failed to initialize Python: " + error.message 
+                    });
+                }
+            }
+            
+            // Install packages
+            async function installPackages(packagesList) {
+                if (!pyodideReady) {
+                    self.postMessage({ 
+                        type: "output", 
+                        output: "Python environment is still loading. Please wait..."
+                    });
+                    return false;
+                }
+                
+                try {
+                    self.postMessage({ type: "status", status: "installing" });
+                    
+                    // Reset output buffers
+                    pyodide.runPython(\`
+                        sys.stdout.outputs = []
+                        sys.stderr.outputs = []
+                    \`);
+                    
+                    const packagesArray = packagesList.filter(pkg => pkg.trim() !== "");
+                    
+                    if (packagesArray.length === 0) {
+                        self.postMessage({ 
+                            type: "installComplete", 
+                            success: true,
+                            message: "No packages specified to install.",
+                            installedPackages: Array.from(installedPackages)
+                        });
+                        return true;
+                    }
+                    
+                    // Import micropip
+                    await pyodide.runPythonAsync(\`
+                        import micropip
+                    \`);
+                    
+                    // Install the packages
+                    await pyodide.runPythonAsync(\`
+                        await micropip.install(\` + JSON.stringify(packagesArray) + \`)
+                    \`);
+                    
+                    // Update installed packages list
+                    packagesArray.forEach(pkg => installedPackages.add(pkg.trim()));
+                    
+                    const stdout = pyodide.runPython("sys.stdout.get_output()");
+                    const stderr = pyodide.runPython("sys.stderr.get_output()");
+                    
+                    let outputText = "";
+                    if (stdout) outputText += stdout;
+                    if (stderr) outputText += "\\n" + stderr;
+                    
+                    self.postMessage({ 
+                        type: "installComplete", 
+                        success: true,
+                        message: outputText || "Packages installed successfully.",
+                        installedPackages: Array.from(installedPackages)
+                    });
+                    
+                    return true;
+                } catch (error) {
+                    let errorOutput = "";
+                    
+                    try {
+                        const stdout = pyodide.runPython("sys.stdout.get_output()");
+                        if (stdout) {
+                            errorOutput = stdout + "\\n\\n";
+                        }
+                    } catch (e) {
+                        // Ignore errors in error handling
+                    }
+                    
+                    errorOutput += "Error installing packages: " + error.message;
+                    
+                    self.postMessage({ 
+                        type: "installComplete", 
+                        success: false,
+                        message: errorOutput,
+                        installedPackages: Array.from(installedPackages)
+                    });
+                    
+                    return false;
+                }
+            }
+            
+            // Handle messages from the main thread
+            self.onmessage = async function(event) {
+                const message = event.data;
+                
+                if (message.type === "initialize") {
+                    await initializePyodide();
+                    return;
+                }
+                
+                if (message.type === "installPackages") {
+                    await installPackages(message.packages);
+                    return;
+                }
+                
+                if (message.type === "runCode") {
+                    if (!pyodideReady) {
+                        self.postMessage({ 
+                            type: "output", 
+                            output: "Python environment is still loading. Please wait..."
+                        });
+                        return;
+                    }
+                    
+                    const { code } = message;
+                    
+                    try {
+                        // Reset output buffers
+                        pyodide.runPython(\`
+                            sys.stdout.outputs = []
+                            sys.stderr.outputs = []
+                        \`);
+                        
+                        // Run the user code
+                        const result = await pyodide.runPythonAsync(code);
+                        
+                        // Get any stdout/stderr output
+                        const stdout = pyodide.runPython("sys.stdout.get_output()");
+                        const stderr = pyodide.runPython("sys.stderr.get_output()");
+                        
+                        // Format the output
+                        let outputText = "";
+                        
+                        if (stdout) {
+                            outputText += stdout;
+                        }
+                        
+                        if (stderr) {
+                            outputText += "\\n" + stderr;
+                        }
+                        
+                        if (result !== undefined && String(result) !== "undefined" && String(result) !== "null") {
+                            if (outputText) {
+                                outputText += "\\n";
+                            }
+                            outputText += "Return value: " + String(result);
+                        }
+                        
+                        // Send the results back to the main thread
+                        self.postMessage({ 
+                            type: "output", 
+                            output: outputText || "Code executed successfully (no output)"
+                        });
+                        
+                    } catch (error) {
+                        // Get any output that was generated before the error
+                        let errorOutput = "";
+                        
+                        try {
+                            const stdout = pyodide.runPython("sys.stdout.get_output()");
+                            if (stdout) {
+                                errorOutput = stdout + "\\n\\n";
+                            }
+                        } catch (e) {
+                            // Ignore errors in error handling
+                        }
+                        
+                        errorOutput += "Error: " + error.message;
+                        
+                        self.postMessage({ 
+                            type: "output", 
+                            output: errorOutput
+                        });
+                    }
+                    
+                    // Signal execution completion
+                    self.postMessage({ type: "executionComplete" });
+                }
+            };
+        `;
+        
+        // Create a blob URL from the worker code
+        const workerBlob = new Blob([workerCode], { type: "application/javascript" });
+        const workerUrl = URL.createObjectURL(workerBlob);
+        
+        // Create and initialize the worker
+        function initWorker() {
+            if (pyodideWorker) {
+                pyodideWorker.terminate();
+            }
+            
+            pyodideWorker = new Worker(workerUrl);
+            installedPackages = new Set();
+            updateInstalledPackagesList();
+            
+            pyodideWorker.onmessage = function(event) {
+                const message = event.data;
+                
+                if (message.type === "status") {
+                    if (message.status === "loading") {
+                        statusTextElement.textContent = "Loading Python environment...";
+                        loaderElement.style.display = "block";
+                        runButton.disabled = true;
+                        installButton.disabled = true;
+                    } else if (message.status === "ready") {
+                        statusTextElement.textContent = "Ready";
+                        loaderElement.style.display = "none";
+                        runButton.disabled = false;
+                        installButton.disabled = false;
+                        outputElement.textContent = "Python environment loaded. Ready to run code!";
+                    } else if (message.status === "error") {
+                        statusTextElement.textContent = "Error initializing Python";
+                        loaderElement.style.display = "none";
+                        outputElement.textContent = message.error;
+                        installButton.disabled = true;
+                    } else if (message.status === "installing") {
+                        statusTextElement.textContent = "Installing packages...";
+                        loaderElement.style.display = "block";
+                        runButton.disabled = true;
+                        installButton.disabled = true;
+                    }
+                } else if (message.type === "output") {
+                    outputElement.textContent = message.output;
+                } else if (message.type === "executionComplete") {
+                    // Execution completed, update UI
+                    runButton.disabled = false;
+                    installButton.disabled = false;
+                    stopButton.style.display = "none";
+                    statusTextElement.textContent = "Ready";
+                    loaderElement.style.display = "none";
+                } else if (message.type === "installComplete") {
+                    // Package installation completed
+                    if (message.success) {
+                        statusTextElement.textContent = "Ready";
+                    } else {
+                        statusTextElement.textContent = "Package installation error";
+                    }
+                    loaderElement.style.display = "none";
+                    runButton.disabled = false;
+                    installButton.disabled = false;
+                    outputElement.textContent = message.message;
+                    
+                    // Update installed packages
+                    if (message.installedPackages) {
+                        installedPackages = new Set(message.installedPackages);
+                        updateInstalledPackagesList();
+                    }
+                }
+            };
+            
+            // Initialize Pyodide in the worker
+            pyodideWorker.postMessage({ type: "initialize" });
+        }
+        
+        // Function to run code in the worker
+        function runPythonCode() {
+            const code = editor.getValue();
+            
+            // Update UI to indicate running state
+            runButton.disabled = true;
+            installButton.disabled = true;
+            stopButton.style.display = "inline-block";
+            statusTextElement.textContent = "Running...";
+            loaderElement.style.display = "block";
+            outputElement.textContent = "Running...";
+            
+            // Send code to the worker for execution
+            pyodideWorker.postMessage({ type: "runCode", code: code });
+        }
+        
+        // Function to install packages
+        function installPackages() {
+            const packagesText = packagesTextarea.value;
+            const packagesList = packagesText.split("\\n").map(pkg => pkg.trim()).filter(pkg => pkg !== "");
+            
+            if (packagesList.length === 0) {
+                outputElement.textContent = "No packages specified to install.";
+                return;
+            }
+            
+            // Update UI to indicate installing state
+            runButton.disabled = true;
+            installButton.disabled = true;
+            statusTextElement.textContent = "Installing packages...";
+            loaderElement.style.display = "block";
+            outputElement.textContent = `Installing packages: ${packagesList.join(", ")}...`;
+            
+            // Send packages to the worker for installation
+            pyodideWorker.postMessage({ type: "installPackages", packages: packagesList });
+        }
+        
+        // Function to update installed packages list
+        function updateInstalledPackagesList() {
+            if (installedPackages.size === 0) {
+                installedPackagesList.textContent = "None";
+            } else {
+                installedPackagesList.textContent = Array.from(installedPackages).join(", ");
+            }
+        }
+        
+        // Function to stop execution
+        function stopExecution() {
+            if (pyodideWorker) {
+                // Terminate and restart the worker to stop execution
+                initWorker();
+                
+                outputElement.textContent = "Execution stopped by user.";
+                runButton.disabled = false;
+                installButton.disabled = false;
+                stopButton.style.display = "none";
+                statusTextElement.textContent = "Ready";
+                loaderElement.style.display = "none";
+            }
+        }
+        
+        // Clear the output
+        function clearOutput() {
+            outputElement.textContent = "";
+        }
+        
+        // Toggle packages panel
+        function togglePackagesPanel() {
+            packagesPanel.classList.toggle("collapsed");
+            collapseIcon.textContent = packagesPanel.classList.contains("collapsed") ? "◀" : "▶";
+        }
+        
+        // Set up event listeners
+        runButton.addEventListener("click", runPythonCode);
+        stopButton.addEventListener("click", stopExecution);
+        clearButton.addEventListener("click", clearOutput);
+        packagesHeader.addEventListener("click", togglePackagesPanel);
+        installButton.addEventListener("click", installPackages);
+        
+        // Initialize the worker when the page loads
+        window.addEventListener("load", initWorker);
+        
+        // Clean up on page unload
+        window.addEventListener("unload", function() {
+            if (pyodideWorker) {
+                pyodideWorker.terminate();
+                URL.revokeObjectURL(workerUrl);
+            }
+        });
+        
+        
+        const askAiButton = document.getElementById("ask-ai-button");
+        const aiResponseContainer = document.querySelector(".ai-response-container");
+        const aiResponseContent = document.getElementById("ai-response");
+        const closeAiButton = document.getElementById("close-ai-button");
+        const settingsToggle = document.getElementById("settings-toggle");
+        const settingsPanel = document.getElementById("settings-panel");
+        const saveSettingsButton = document.getElementById("save-settings");
+        const apiKeyInput = document.getElementById("api-key");
+        const apiEndpointInput = document.getElementById("api-endpoint");
+        const modelNameInput = document.getElementById("model-name");
+        const chatInput = document.getElementById("chat-input");
+        const sendChatButton = document.getElementById("send-chat-button");
+        let conversationHistory = [];
+
+        // Function to add a message to the conversation history
+        function addMessageToHistory(role, content) {
+            conversationHistory.push({ role, content });
+        }
+
+        // Function to display a message in the chat UI
+        function displayMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            
+            if (role === 'user') {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'message-user';
+                userDiv.textContent = content;
+                messageDiv.appendChild(userDiv);
+            } else if (role === 'assistant') {
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'message-ai';
+                aiDiv.innerHTML = markdownToHtml(content);
+                messageDiv.appendChild(aiDiv);
+            }
+            
+            // Insert at the end but before the typing indicator if present
+            const typingIndicator = aiResponseContent.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                aiResponseContent.insertBefore(messageDiv, typingIndicator);
+            } else {
+                aiResponseContent.appendChild(messageDiv);
+            }
+            
+            aiResponseContent.scrollTop = aiResponseContent.scrollHeight;
+        }
+
+        // Default system prompt focused on teaching rather than solving
+        const DEFAULT_SYSTEM_PROMPT = `You are a helpful teaching assistant for coding. Your goal is to help students learn by guiding them to find solutions themselves, not by giving direct answers.
+
+        IMPORTANT GUIDELINES:
+        1. Do NOT provide complete solutions.
+        2. Ask questions to help students think through their problem.
+        3. Provide hints and educational explanations, not direct fixes.
+        4. Explain relevant concepts related to their error.
+        5. When a student is stuck, suggest a small step they can take.
+        6. Use the Socratic method - guide through questioning.
+        7. Encourage debugging skills and critical thinking.
+        8. Praise good attempts and progress.
+
+        When students paste code with errors, help them understand why the error occurs and guide them to debug themselves. If they're completely stuck, provide a small hint about what might be wrong, but never the complete solution.`;
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const apiKey = localStorage.getItem('aiApiKey') || '';
+            const apiEndpoint = localStorage.getItem('aiApiEndpoint') || 'https://api.openai.com/v1/chat/completions';
+            const modelName = localStorage.getItem('aiModelName') || 'gpt-3.5-turbo';
+            
+            apiKeyInput.value = apiKey;
+            apiEndpointInput.value = apiEndpoint;
+            modelNameInput.value = modelName;
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            localStorage.setItem('aiApiKey', apiKeyInput.value);
+            localStorage.setItem('aiApiEndpoint', apiEndpointInput.value);
+            localStorage.setItem('aiModelName', modelNameInput.value);
+            settingsPanel.style.display = 'none';
+        }
+
+        // Create typing indicator
+        function createTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            return indicator;
+        }
+
+        // Convert markdown to HTML (simple version)
+        function markdownToHtml(markdown) {
+            if (!markdown) return '';
+            
+            // Convert code blocks
+            let html = markdown.replace(/```(\w*)([\s\S]*?)```/g, function(match, language, code) {
+                return `<pre><code>${code.trim()}</code></pre>`;
+            });
+            
+            // Convert inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Convert headers
+            html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            
+            // Convert bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Convert italic
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Convert lists
+            html = html.replace(/^\s*\- (.*$)/gm, '<ul><li>$1</li></ul>');
+            
+            // Fix consecutive list items
+            html = html.replace(/<\/ul>\s*<ul>/g, '');
+            
+            // Convert paragraphs (simple approach)
+            html = html.split('\n\n').map(paragraph => {
+                if (
+                    !paragraph.trim().startsWith('<h') && 
+                    !paragraph.trim().startsWith('<ul') && 
+                    !paragraph.trim().startsWith('<pre') &&
+                    paragraph.trim() !== ''
+                ) {
+                    return `<p>${paragraph.trim()}</p>`;
+                }
+                return paragraph;
+            }).join('\n');
+            
+            return html;
+        }
+
+        // Ask AI for help
+        async function askAI(userQuestion = null) {
+            // If it's the first message, get code and output
+            let question;
+            if (conversationHistory.length === 0) {
+                const code = editor.getValue();
+                const output = outputElement.textContent;
+                
+                // Check if code is empty
+                if (!code.trim()) {
+                    aiResponseContainer.style.display = 'block';
+                    aiResponseContent.innerHTML = 'Please write some code first before asking for help.';
+                    return;
+                }
+                
+                question = `I'm working on some Python code and need help understanding what's happening. Here's my code:
+
+        \`\`\`python
+        ${code}
+        \`\`\`
+
+        And here's the output/error I'm getting:
+        \`\`\`
+        ${output}
+        \`\`\`
+
+        Can you help me understand what might be wrong and give me some hints on how to fix it? Please don't give me the direct solution - I want to learn and figure it out myself.`;
+            } else {
+                // Use the follow-up question
+                question = userQuestion;
+                
+                // Display the user's question in the chat
+                displayMessage('user', question);
+            }
+            
+            // Check if API key is set
+            const apiKey = localStorage.getItem('aiApiKey');
+            if (!apiKey) {
+                aiResponseContainer.style.display = 'block';
+                aiResponseContent.innerHTML = 'Please set your API key in the settings panel below.';
+                settingsPanel.style.display = 'block';
+                return;
+            }
+            
+            // Show AI response container
+            aiResponseContainer.style.display = 'block';
+            
+            // Add typing indicator
+            if (conversationHistory.length === 0) {
+                aiResponseContent.innerHTML = '';
+            }
+            const typingIndicator = createTypingIndicator();
+            aiResponseContent.appendChild(typingIndicator);
+            
+            // Add the user's message to history
+            addMessageToHistory('user', question);
+            
+            // Prepare the messages for the API request
+            const apiEndpoint = localStorage.getItem('aiApiEndpoint') || 'https://api.openai.com/v1/chat/completions';
+            const modelName = localStorage.getItem('aiModelName') || 'gpt-3.5-turbo';
+            
+            // Build the complete message history for context
+            const messages = [
+                { role: "system", content: DEFAULT_SYSTEM_PROMPT },
+                ...conversationHistory
+            ];
+            
+            try {
+                // Set up fetch with streaming
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: modelName,
+                        messages: messages,
+                        stream: true
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(e => ({ error: { message: 'Unknown error' } }));
+                    throw new Error(errorData.error?.message || 'API request failed');
+                }
+                
+                // Remove typing indicator
+                aiResponseContent.removeChild(typingIndicator);
+                
+                // Set up streaming response handling
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let responseText = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    // Decode the chunk
+                    const chunk = decoder.decode(value, { stream: true });
+                    
+                    // Process the chunk to extract the content
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                            try {
+                                const jsonData = JSON.parse(line.substring(6));
+                                if (jsonData.choices && jsonData.choices[0].delta && jsonData.choices[0].delta.content) {
+                                    responseText += jsonData.choices[0].delta.content;
+                                    
+                                    // If this is a new conversation, replace the content
+                                    if (conversationHistory.length === 1) {
+                                        // Display the full response as it streams
+                                        displayMessage('assistant', responseText);
+                                        // Remove the previous message to avoid duplication
+                                        const messages = aiResponseContent.querySelectorAll('.message');
+                                        if (messages.length > 1) {
+                                            aiResponseContent.removeChild(messages[0]);
+                                        }
+                                    } else {
+                                        // For ongoing conversation, update the last message
+                                        const lastMessage = aiResponseContent.querySelector('.message:last-child .message-ai');
+                                        if (lastMessage) {
+                                            lastMessage.innerHTML = markdownToHtml(responseText);
+                                        } else {
+                                            displayMessage('assistant', responseText);
+                                        }
+                                    }
+                                    
+                                    aiResponseContent.scrollTop = aiResponseContent.scrollHeight;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing JSON:', e);
+                            }
+                        }
+                    }
+                }
+                
+                // Add the AI's response to history
+                addMessageToHistory('assistant', responseText);
+                
+                // Enable the chat input after getting a response
+                chatInput.disabled = false;
+                sendChatButton.disabled = false;
+                
+            } catch (error) {
+                const errorHtml = `<p>Error: ${error.message}</p>
+        <p>Please check your API key and settings.</p>`;
+                
+                if (conversationHistory.length <= 1) {
+                    aiResponseContent.innerHTML = errorHtml;
+                } else {
+                    displayMessage('assistant', errorHtml);
+                }
+                
+                // Re-enable the chat input
+                chatInput.disabled = false;
+                sendChatButton.disabled = false;
+            }
+        }
+        
+        // Handle sending chat messages
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Disable input while processing
+            chatInput.disabled = true;
+            sendChatButton.disabled = true;
+            
+            // Call askAI with the user's message
+            askAI(message);
+            
+            // Clear the input field
+            chatInput.value = '';
+        }
+
+        // Clear conversation history when closing the AI panel
+        function closeAIPanel() {
+            aiResponseContainer.style.display = 'none';
+            conversationHistory = [];
+        }
+
+        // Modify event handlers
+        sendChatButton.addEventListener("click", sendChatMessage);
+        chatInput.addEventListener("keydown", (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+        closeAiButton.addEventListener("click", closeAIPanel);
+
+        // Add a clear chat history button inside closeAiButton event listener
+        // closeAiButton.addEventListener("click", () => {
+        //     aiResponseContainer.style.display = 'none';
+        //     conversationHistory = [];
+        // });        
+
+        // Set up event listeners
+        askAiButton.addEventListener("click", () => {
+            conversationHistory = [];
+            askAI();
+        });
+
+        settingsToggle.addEventListener("click", () => {
+            settingsPanel.style.display = settingsPanel.style.display === 'none' ? 'block' : 'none';
+        });
+        saveSettingsButton.addEventListener("click", saveSettings);
+
+        // Load settings on page load
+        loadSettings();
+    </script>
+</body>
+</html>
