@@ -539,7 +539,7 @@ print(greet("Learner"))
         <div id="packages-panel" class="packages-panel">
             <div class="packages-header" id="packages-header">
                 <span class="panel-title">Python Packages</span>
-                <span class="collapse-icon" id="collapse-icon">▶</span>
+                <span class="collapse-icon" id="collapse-icon">×</span>
             </div>
             <div class="packages-content">
                 <div>
@@ -960,7 +960,7 @@ matplotlib
         // Toggle packages panel
         function togglePackagesPanel() {
             packagesPanel.classList.toggle("collapsed");
-            collapseIcon.textContent = packagesPanel.classList.contains("collapsed") ? "◀" : "▶";
+            collapseIcon.textContent = packagesPanel.classList.contains("collapsed") ? "◀" : "×";
         }
         
         // Set up event listeners
