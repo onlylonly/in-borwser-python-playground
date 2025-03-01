@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Playground</title>
-    
     <!-- Include CodeMirror for syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
-    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,31 +17,31 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
-        
         h1 {
             color: #333;
             text-align: center;
+            font-size: clamp(1.5rem, 4vw, 2rem);
         }
-        
         .main-container {
             display: flex;
+            flex-direction: row;
             gap: 20px;
+            flex-wrap: wrap;
         }
-        
         .container {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            flex: 1;
+            flex: 1 1 300px;
+            min-width: 0; /* Needed for flexbox to properly size content */
         }
-        
         .editor-container, .output-container, .packages-container {
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            width: 100%;
         }
-        
         .editor-header, .output-header, .packages-header {
             background-color: #4a76a8;
             color: white;
@@ -52,27 +50,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
         }
-        
         .output-header {
             background-color: #5a865a;
         }
-        
         .packages-header {
             background-color: #a87a4a;
             cursor: pointer;
         }
-        
         .editor-content {
             height: 300px;
             border: 1px solid #ddd;
         }
-        
         .CodeMirror {
             height: 100%;
             font-size: 16px;
         }
-        
         .output-content {
             min-height: 150px;
             max-height: 300px;
@@ -84,44 +78,37 @@
             color: #333;
             border: 1px solid #ddd;
         }
-        
         .packages-content {
             padding: 15px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
         .packages-panel {
-            width: 300px;
+            flex: 0 1 300px;
             transition: width 0.3s ease;
         }
-        
         .packages-panel.collapsed {
-            width: 40px;
+            flex: 0 0 40px;
         }
-        
         .packages-panel.collapsed .packages-content {
             display: none;
         }
-        
         .packages-panel.collapsed .panel-title {
             display: none;
         }
-        
         .collapse-icon {
             cursor: pointer;
             font-weight: bold;
             user-select: none;
         }
-        
         .button-container {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
             margin: 10px 0;
+            flex-wrap: wrap;
         }
-        
         button {
             background-color: #4a76a8;
             color: white;
@@ -131,55 +118,44 @@
             cursor: pointer;
             font-size: 14px;
             transition: background-color 0.2s;
+            white-space: nowrap;
         }
-        
         button:hover {
             background-color: #3a5d84;
         }
-        
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
-        
         #run-button {
             background-color: #5a865a;
         }
-        
         #run-button:hover {
             background-color: #4a6e4a;
         }
-        
         #run-button:disabled {
             background-color: #c0c0c0;
         }
-        
         #stop-button {
             background-color: #a85a5a;
             display: none;
         }
-        
         #stop-button:hover {
             background-color: #8a4a4a;
         }
-        
         #clear-button {
             background-color: #a85a5a;
         }
-        
         #clear-button:hover {
             background-color: #8a4a4a;
         }
-        
         #install-button {
             background-color: #a87a4a;
             width: 100%;
         }
-        
         #install-button:hover {
             background-color: #8a6a3a;
         }
-        
         #packages-textarea {
             width: 100%;
             min-height: 100px;
@@ -189,7 +165,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        
         .examples-container {
             background-color: white;
             border-radius: 8px;
@@ -197,34 +172,28 @@
             padding: 15px;
             margin-top: 20px;
         }
-        
         .examples-container h3 {
             margin-top: 0;
             color: #333;
         }
-        
         .example {
             margin-bottom: 10px;
             cursor: pointer;
             color: #4a76a8;
         }
-        
         .example:hover {
             text-decoration: underline;
         }
-        
         .installed-packages {
             font-size: 14px;
             margin-top: 10px;
             border-top: 1px solid #ddd;
             padding-top: 10px;
         }
-        
         .installed-packages-title {
             font-weight: bold;
             margin-bottom: 5px;
         }
-        
         .loader {
             display: none;
             border: 4px solid #f3f3f3;
@@ -235,31 +204,28 @@
             animation: spin 2s linear infinite;
             margin-left: 10px;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
         .status {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
         }
-        
         .help-text {
             font-size: 13px;
             color: #666;
             margin-top: 5px;
         }
-        
         .ai-response-container {
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
-            max-width: 40%;
+            flex: 1 1 300px;
+            max-width: 100%;
         }
-
         .ai-response-header {
             background-color: #8a4aa8;
             color: white;
@@ -269,7 +235,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .ai-response-content {
             min-height: 150px;
             max-height: 400px;
@@ -279,19 +244,15 @@
             font-family: sans-serif;
             line-height: 1.5;
         }
-        
         .ai-response-content p {
             margin: 3px;
         }
-
         #ask-ai-button {
             background-color: #8a4aa8;
         }
-
         #ask-ai-button:hover {
             background-color: #7a3a98;
         }
-
         #close-ai-button {
             background: none;
             border: none;
@@ -300,43 +261,37 @@
             cursor: pointer;
             padding: 0 5px;
         }
-
         .ai-settings {
             padding: 10px;
             border-top: 1px solid #eee;
         }
-
         #settings-toggle {
             background-color: #f0f0f0;
             color: #333;
             font-size: 12px;
             padding: 5px 10px;
         }
-
         #settings-panel {
             margin-top: 10px;
             padding: 10px;
             background-color: #f8f8f8;
             border-radius: 4px;
         }
-
         .settings-row {
             margin-bottom: 10px;
             display: flex;
             flex-direction: column;
         }
-
         .settings-row label {
             margin-bottom: 5px;
             font-size: 14px;
         }
-
         .settings-row input {
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            width: 100%;
         }
-
         #save-settings {
             background-color: #4a76a8;
             color: white;
@@ -346,13 +301,12 @@
             cursor: pointer;
             font-size: 14px;
             margin-top: 10px;
+            width: 100%;
         }
-
         .typing-indicator {
             display: inline-block;
             margin-right: 5px;
         }
-
         .typing-indicator span {
             display: inline-block;
             width: 8px;
@@ -362,44 +316,45 @@
             margin-right: 3px;
             animation: typingAnimation 1s infinite ease-in-out;
         }
-
         .typing-indicator span:nth-child(2) {
             animation-delay: 0.2s;
         }
-
         .typing-indicator span:nth-child(3) {
             animation-delay: 0.4s;
         }
-
         @keyframes typingAnimation {
             0% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
             100% { transform: translateY(0); }
         }
-
         code {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
             border-radius: 3px;
             font-family: monospace;
             padding: 2px 4px;
+            max-width: 100%;
+            overflow-x: auto;
+            display: inline-block;
+            font-size: 0.9em;
         }
-
         pre {
             background-color: #f5f5f5;
             border: 1px solid #ddd;
             border-radius: 4px;
             padding: 10px;
             overflow-x: auto;
+            max-width: 100%;
+            font-size: 0.9em;
         }        
-        
         .chat-input-area {
             display: flex;
             padding: 10px;
             border-top: 1px solid #eee;
             background-color: #f8f8f8;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        
         #chat-input {
             flex-grow: 1;
             padding: 10px;
@@ -408,9 +363,8 @@
             resize: vertical;
             min-height: 60px;
             font-family: inherit;
-            margin-right: 10px;
+            min-width: 150px;
         }
-        
         #send-chat-button {
             background-color: #8a4aa8;
             color: white;
@@ -421,27 +375,84 @@
             align-self: flex-end;
             height: 40px;
         }
-        
         #send-chat-button:hover {
             background-color: #7a3a98;
         }
-        
         .message {
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid #eee;
         }
-        
         .message-user {
             background-color: #f0f0f0;
             padding: 10px;
             border-radius: 4px;
             margin-bottom: 10px;
         }
-        
         .message-ai {
             /* No special styling needed for AI responses */
-        }        
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .main-container {
+                flex-direction: column;
+            }
+            .container, .ai-response-container, .packages-panel {
+                flex: 1 1 100%;
+            }
+            .button-container {
+                justify-content: center;
+            }
+            button {
+                padding: 12px 15px; /* Larger touch targets for mobile */
+                font-size: 16px;
+            }
+            .editor-content {
+                height: 200px; /* Smaller editor on mobile */
+            }
+            .output-content, .ai-response-content {
+                max-height: 200px; /* Smaller output on mobile */
+            }
+            .CodeMirror {
+                font-size: 14px; /* Smaller font in code editor for mobile */
+            }
+            .status {
+                margin-top: 5px;
+                width: 100%;
+            }
+            .editor-header, .output-header, .packages-header {
+                padding: 10px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .packages-panel.collapsed {
+                flex: 0 0 100%;
+                width: 100%;
+            }
+            pre, code {
+                max-width: 100%;
+                overflow-x: auto;
+                font-size: 0.85em;
+            }
+            .chat-input-area {
+                flex-direction: column;
+            }
+            #chat-input {
+                width: 100%;
+            }
+            #send-chat-button {
+                width: 100%;
+                align-self: center;
+            }
+            .settings-row input {
+                font-size: 16px; /* Better input size for mobile */
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
