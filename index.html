@@ -528,7 +528,7 @@ print(greet("Learner"))
                     </div>
                     <div class="settings-row">
                         <label for="model-name">Model:</label>
-                        <input type="text" id="model-name" placeholder="gpt-3.5-turbo" value="gpt-3.5-turbo">
+                        <input type="text" id="model-name" placeholder="gpt-4.1-mini" value="gpt-4.1-mini">
                     </div>
                     <button id="save-settings">Save Settings</button>
                 </div>
@@ -1048,7 +1048,7 @@ matplotlib
         function loadSettings() {
             const apiKey = localStorage.getItem('aiApiKey') || '';
             const apiEndpoint = localStorage.getItem('aiApiEndpoint') || 'https://api.openai.com/v1/chat/completions';
-            const modelName = localStorage.getItem('aiModelName') || 'gpt-3.5-turbo';
+            const modelName = localStorage.getItem('aiModelName') || 'gpt-4.1-mini';
             
             apiKeyInput.value = apiKey;
             apiEndpointInput.value = apiEndpoint;
@@ -1175,7 +1175,7 @@ matplotlib
             
             // Prepare the messages for the API request
             const apiEndpoint = localStorage.getItem('aiApiEndpoint') || 'https://api.openai.com/v1/chat/completions';
-            const modelName = localStorage.getItem('aiModelName') || 'gpt-3.5-turbo';
+            const modelName = localStorage.getItem('aiModelName') || 'gpt-4.1-mini';
             
             // Build the complete message history for context
             const messages = [
